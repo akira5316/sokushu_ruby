@@ -1,0 +1,240 @@
+                class User
+                  attr_accessor :name, :address, :email
+
+                  def initialize(name, address, email)
+                    @name = name
+                    @address = address
+                    @email = email
+                  end
+
+                end
+
+        メソッド呼び出しの制限 private
+
+                class Person
+                  def initialize(money)
+                    @money = money
+                  end
+
+                  def billionaire?
+                    money >= 1000000000
+                  end
+
+                  private
+
+                  def money
+                    @money
+                  end
+                end
+
+                        億万長者かどうかのみを外部に公開
+                        所持金は非公開
+                        外部から呼び出し可能なメソッドをpublicメソッドという。
+
+      似たところのあるクラスを作る時
+
+              class Product
+                attr_accessor :price
+
+                def total_price
+                  price * Tax.rate
+                end
+              end
+
+              class OrderedItem
+                attr_accessor :unit_price, :volume
+
+                def price
+                  unit_price * volume
+                end
+
+                def total_price
+                  price * Tax.rate
+                end
+              end
+
+                      それぞれ同じメソッドを定義するのは後に変更が生じた際に変更する箇所が増えるので避けたほうがよい。
+                      PricedObjectを作成し、ProductとOrderedItemがそれぞれ継承する。
+
+              class PricedObject
+                def total_price
+                  price * Tax.rate
+                end
+
+                def price
+                  raise NotImplementedError
+                end
+              end
+
+              class Product < PricedObject
+                attr_accessor :price
+              end
+
+              class OrderedItem < PricedObject
+                attr_accessor :unit_price, :volume
+
+                def price
+                  unit_price * volume
+                end
+              end
+
+      親・子クラスで共通の同名メソッドの呼び出し
+
+              class Book
+                def title
+                  '本のタイトル'
+                end
+              end
+
+              class Magazine < Book
+                def title
+                  '雑誌のタイトル'
+                end
+              end
+
+              irb(main):039:0> magazine = Magazine.new
+              irb(main):041:0> magazine.title
+              => "雑誌のタイトル"
+
+                      親クラス・子クラスで同名のメソッドを持ち、そのメソッドを呼び出すと、子クラスのメソッドが呼び出される。
+
+      メソッドのオーバーライド
+
+              class BaseTask
+                def puts_message
+                  puts 'BaseTaskタイトル'
+                end
+              end
+
+              class Task < BaseTask
+                def puts_message
+                  super
+                  puts 'Taskのタイトル'
+                end
+              end
+
+              irb(main):043:0> task = Task.new
+              => #<Task:0x00007fc5aa833660>
+              irb(main):044:0> task.puts_message
+              BaseTaskタイトル
+              Taskのタイトル
+
+      モジュール
+
+              # おしゃべり能力
+              module Chatting
+                def chat
+                  "hello"
+                end
+              end
+
+                      moduleはオブジェクトを生成することができない
+
+              # おしゃべり能力
+              module Chatting
+                def chat
+                  "hello"
+                end
+              end
+
+              class Dog
+                include Chatting
+              end
+
+              irb(main):048:0> pochi = Dog.new
+              => #<Dog:0x00007fc5b981f700>
+
+              irb(main):049:0> pochi.chat
+              => "hello"
+
+              class Human
+                include Chatting
+              end
+
+      複数のクラスで共通している処理を共通化
+
+              module PriceHolder
+                def total_price
+                  price * Tax.rate
+                end
+              end
+
+              class Product
+                include PriceHolder
+
+                attr_accessor :price
+              end
+
+              class OrderedItem
+                include PriceHolder
+
+                attr_accessor :unit_price, :volume
+
+                def price
+                  unit_price * volume
+                end
+              end
+
+      クラスメソッドの定義
+
+              class Tax
+                def self.rate
+                  1.06
+                end
+              end
+
+              class Book < ApplicationRecord
+                has_many :authors
+              end
+
+                      クラスメソッドを定義する時は、メソッド名の最初にselfをつける。
+
+                      Railsのモデル定義のhas_manyはクラスメソッドのひとつ。
+
+      プログラムの異常検知
+
+              自分でエラーを発生させることができる
+
+                      irb(main):051:0> raise ZeroDivisionError.new("hello, error!")
+                      Traceback (most recent call last):
+                      .........
+                      ZeroDivisionError (hello, error!)
+
+                      irb(main):054:0> raise '例外が発生しました'
+                      Traceback (most recent call `rescue in
+                      ......
+                      RuntimeError (例外が発生しました)
+
+              例外クラスを自分で作ることもできる
+
+                      irb(main):053:0> raise NoMoneyError, "no money"
+                      ...
+                      NoMoneyError (no money)
+
+              例外を補足するためには、begin節を使用する
+
+                      begin
+                        (例外が発生するかもしれないコード)
+                      rescue
+                        (例外に対応するコード)
+                      ensure
+                        (例外発生有無に関わらず必ず実行するコード)
+                      end
+
+              メソッド内で例外処理を行う場合はbeginを書かなくても良い
+
+                      def メソッド名
+                        （メソッドのコード）
+                      rescue
+                        （例外に対応するコード）
+                      ensure
+                        （例外の発生有無に関わらず必ず実行するコード）
+                      end
+
+              例外の内容を補足して出力したい時
+
+                      begin
+                        do_something
+                      rescue SomeSpacialError => e
+                        puts "#{e.class}(#{e.message})が発生しました。処理を実行します。"
+                      end
